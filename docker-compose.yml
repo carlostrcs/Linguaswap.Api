@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: linguaswap-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: linguaswap
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - linguaswap-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  linguaswap-postgres-data:

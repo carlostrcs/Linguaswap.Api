@@ -1,0 +1,41 @@
+﻿using LinguaSwap.Infrastructure.Persistence;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace LinguaSwap.Application.Progress.GetProgressSummary
+{
+    public sealed class GetProgressSummaryHandler
+    {
+        private readonly LinguaSwapDbContext _db;
+
+        public GetProgressSummaryHandler(LinguaSwapDbContext db)
+        {
+            _db = db;
+        }
+
+        public GetProgressSummaryResult Handle(GetProgressSummaryQuery query)
+        {
+            var stats = _db.UserVocabStats
+                .Where(s =>
+                    s.UserId == query.UserId &&
+                    s.SourceLanguage == query.SourceLanguage &&
+                    s.TargetLanguage == query.TargetLanguage)
+                .ToList();
+
+            var totalAttempts = stats.Sum(s => s.CorrectCount + s.WrongCount);
+            var correctAttempts = stats.Sum(s => s.CorrectCount);
+
+            var accuracy = totalAttempts == 0
+                ? 0
+                : (double)correctAttempts / totalAttempts;
+
+            return new GetProgressSummaryResult(
+                TotalAttempts: totalAttempts,
+                CorrectAttempts: correctAttempts,
+                Accuracy: accuracy,
+                DistinctWords: stats.Count
+            );
+        }
+    }
+}

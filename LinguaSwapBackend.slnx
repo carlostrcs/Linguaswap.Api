@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="LinguaSwap.Api/LinguaSwap.Api.csproj" />
+  <Project Path="LinguaSwap.Application/LinguaSwap.Application.csproj" />
+  <Project Path="LinguaSwap.Domain/LinguaSwap.Domain.csproj" />
+  <Project Path="LinguaSwap.Infrastructure/LinguaSwap.Infrastructure.csproj" Id="471ff6f6-147d-4134-b0e6-b2a5aca93cef" />
+</Solution>
