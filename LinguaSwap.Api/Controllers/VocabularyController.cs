@@ -106,7 +106,7 @@ namespace LinguaSwap.Api.Controllers
 
         [Authorize]
         [HttpPut("terms/{termId:guid}")]
-        public ActionResult<UpdateTermResult> UpdateTerm(Guid termId, [FromQuery] UpdateTermRequest request)
+        public ActionResult<UpdateTermResult> UpdateTerm(Guid termId, [FromBody] UpdateTermRequest request)
         {
             var userId = GetUserId();
 
