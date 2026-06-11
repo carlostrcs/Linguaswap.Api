@@ -13,22 +13,42 @@ namespace LinguaSwap.Application.Vocabulary.DeleteTerm
 
         public void Handle(DeleteTermCommand command)
         {
-            // 1) Encontrar term + su item + su library
             var term = _db.VocabTerms
-                .Where(t => t.Id == command.TermId)
-                .Join(_db.VocabItems, t => t.VocabItemId, i => i.Id, (t, i) => new { t, i })
-                .Join(_db.Libraries, ti => ti.i.LibraryId, l => l.Id, (ti, l) => new { ti.t, Library = l })
-                .SingleOrDefault();
+               .Where(t => t.Id == command.TermId)
+               .Join(
+                   _db.VocabItems,
+                   t => t.VocabItemId,
+                   i => i.Id,
+                   (t, i) => new { Term = t, Item = i }
+               )
+               .Join(
+                   _db.Libraries,
+                   ti => ti.Item.LibraryId,
+                   l => l.Id,
+                   (ti, l) => new
+                   {
+                       ti.Term,
+                       VocabItemId = ti.Item.Id,
+                       LibraryUserId = l.UserId
+                   }
+               )
+               .SingleOrDefault();
 
             if (term is null)
                 throw new InvalidOperationException("Term not found.");
 
-            // 2) Ownership
-            if (term.Library.UserId != command.UserId)
+            if (term.LibraryUserId != command.UserId)
                 throw new UnauthorizedAccessException("Not allowed.");
 
-            // 3) Delete
-            _db.VocabTerms.Remove(term.t);
+            var termsCount = _db.VocabTerms
+                .Count(t => t.VocabItemId == term.VocabItemId);
+
+            if (termsCount <= 2)
+                throw new InvalidOperationException(
+                    "A vocabulary item must have at least 2 terms."
+                );
+
+            _db.VocabTerms.Remove(term.Term);
             _db.SaveChanges();
         }
     }
