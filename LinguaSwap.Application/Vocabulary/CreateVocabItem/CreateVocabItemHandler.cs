@@ -42,13 +42,19 @@ namespace LinguaSwap.Application.Vocabulary.CreateVocabItem
             if (normalized.Count < 2)
                 throw new InvalidOperationException("Provide at least 2 valid terms");
 
+            var duplicatedLanguage = normalized
+            .GroupBy(t => t.LanguageCode)
+            .FirstOrDefault(g => g.Count() > 1);
+
+            if (duplicatedLanguage is not null)
+                throw new InvalidOperationException(
+                    $"Duplicated language code: {duplicatedLanguage.Key}"
+                );
+
             var item = new VocabItem
             {
                 LibraryId = command.LibraryId
             };
-
-            _db.VocabItems.Add(item);
-            _db.SaveChanges();
 
             var terms = normalized.Select(t => new VocabTerm
             {
@@ -57,6 +63,7 @@ namespace LinguaSwap.Application.Vocabulary.CreateVocabItem
                 Text = t.Text
             });
 
+            _db.VocabItems.Add(item);
             _db.VocabTerms.AddRange(terms);
             _db.SaveChanges();
 
