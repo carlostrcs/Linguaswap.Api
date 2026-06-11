@@ -231,7 +231,7 @@ The progress endpoints provide a first version of user statistics:
 
 ## Related Repositories
 
-* Frontend app: `<FRONTEND_REPOSITORY_URL>`
+* Frontend app: `https://github.com/carlostrcs/Linguaswap.Web`
 
 ## Current Status
 
