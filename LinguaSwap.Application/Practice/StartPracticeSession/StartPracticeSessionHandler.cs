@@ -20,6 +20,15 @@ namespace LinguaSwap.Application.Practice.StartPracticeSession
 
         public StartPracticeSessionResult Handle(StartPracticeSessionCommand command)
         {
+            var sourceLanguage = command.SourceLanguage.Trim().ToLowerInvariant();
+            var targetLanguage = command.TargetLanguage.Trim().ToLowerInvariant();
+
+            if (sourceLanguage.Length == 0 || targetLanguage.Length == 0)
+                throw new InvalidOperationException("Source and target languages are required.");
+
+            if (sourceLanguage == targetLanguage)
+                throw new InvalidOperationException("Source and target languages must be different.");
+
             if (command.LibraryId is Guid libraryId)
             {
                 var allowed = _db.Libraries.Any(l =>
@@ -28,23 +37,38 @@ namespace LinguaSwap.Application.Practice.StartPracticeSession
 
                 if (!allowed)
                     throw new UnauthorizedAccessException("Not allowed to use this library.");
+
+                var hasPracticeableItems = _db.VocabItems
+                    .Where(i => i.LibraryId == libraryId)
+                    .Any(i =>
+                        _db.VocabTerms.Any(t =>
+                            t.VocabItemId == i.Id &&
+                            t.LanguageCode == sourceLanguage)
+                        &&
+                        _db.VocabTerms.Any(t =>
+                            t.VocabItemId == i.Id &&
+                            t.LanguageCode == targetLanguage)
+                    );
+
+                if (!hasPracticeableItems)
+                    throw new InvalidOperationException(
+                        "This library does not have enough vocabulary for this practice session."
+                    );
             }
 
             var session = new PracticeSession
             {
                 UserId = command.UserId,
                 LibraryId = command.LibraryId,
-                SourceLanguage = command.SourceLanguage.ToLowerInvariant(),
-                TargetLanguage = command.TargetLanguage.ToLowerInvariant(),
+                SourceLanguage = sourceLanguage,
+                TargetLanguage = targetLanguage,
                 Direction = command.Direction,
                 Difficulty = command.Difficulty
             };
 
-            // 1) Persistir en Postgres
             _db.PracticeSessions.Add(session);
             _db.SaveChanges();
 
-            // 2) Mantener en memoria el estado de la sesión (cola, set, stats)
             _store.Add(session);
 
             return new StartPracticeSessionResult(session.Id);
