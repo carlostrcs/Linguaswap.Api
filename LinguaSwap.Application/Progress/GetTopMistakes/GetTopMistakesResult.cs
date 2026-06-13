@@ -6,8 +6,11 @@ namespace LinguaSwap.Application.Progress.GetTopMistakes
 {
     public sealed record GetTopMistakesResult(
         Guid VocabItemId,
-        int Correct,
-        int Wrong,
+        string SourceText,
+        string TargetText,
+        int TotalAttempts,
+        int CorrectAttempts,
+        int IncorrectAttempts,
         double Accuracy
     );
 }

@@ -17,7 +17,14 @@ namespace LinguaSwap.Application.Progress.GetProgressHistory
             var target = query.TargetLanguage.Trim().ToLowerInvariant();
             var days = Math.Clamp(query.Days, 1, 365);
 
-            var fromDate = DateTime.UtcNow.Date.AddDays(-days + 1);
+            if (source.Length == 0 || target.Length == 0)
+                throw new InvalidOperationException("Source and target languages are required.");
+
+            if (source == target)
+                throw new InvalidOperationException("Source and target languages must be different.");
+
+            var today = DateTime.UtcNow.Date;
+            var fromDate = today.AddDays(-days + 1);
 
             var grouped =
                 (from a in _db.Attempts.AsNoTracking()
@@ -45,12 +52,46 @@ namespace LinguaSwap.Application.Progress.GetProgressHistory
                  })
                 .ToList();
 
-            return grouped
-                .Select(x => new GetProgressHistoryResult(
-                    Day: new DateTime(x.Year, x.Month, x.Day),
-                    Attempts: x.Attempts,
-                    Correct: x.Correct
-                ))
+            var statsByDay = grouped.ToDictionary(
+                x => new DateTime(x.Year, x.Month, x.Day),
+                x => new
+                {
+                    x.Attempts,
+                    x.Correct
+                }
+            );
+
+            return Enumerable
+                .Range(0, days)
+                .Select(offset =>
+                {
+                    var day = fromDate.AddDays(offset);
+
+                    if (!statsByDay.TryGetValue(day, out var stats))
+                    {
+                        return new GetProgressHistoryResult(
+                            Day: day,
+                            TotalAttempts: 0,
+                            CorrectAttempts: 0,
+                            IncorrectAttempts: 0,
+                            Accuracy: 0
+                        );
+                    }
+
+                    var incorrect = stats.Attempts - stats.Correct;
+
+                    var accuracy = stats.Attempts == 0
+                        ? 0
+                        : (double)stats.Correct / stats.Attempts;
+
+                    return new GetProgressHistoryResult(
+                        Day: day,
+                        TotalAttempts: stats.Attempts,
+                        CorrectAttempts: stats.Correct,
+                        IncorrectAttempts: incorrect,
+                        Accuracy: accuracy
+                    );
+                })
                 .ToList();
         }
     }

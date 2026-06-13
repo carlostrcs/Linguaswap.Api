@@ -7,6 +7,7 @@ namespace LinguaSwap.Application.Progress.GetProgressSummary
     public sealed record GetProgressSummaryResult(
         int TotalAttempts,
         int CorrectAttempts,
+        int IncorrectAttempts,
         double Accuracy,
         int DistinctWords
     );

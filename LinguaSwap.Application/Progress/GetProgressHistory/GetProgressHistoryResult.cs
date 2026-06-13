@@ -6,7 +6,9 @@ namespace LinguaSwap.Application.Progress.GetProgressHistory
 {
     public sealed record GetProgressHistoryResult(
         DateTime Day,
-        int Attempts,
-        int Correct
+        int TotalAttempts,
+        int CorrectAttempts,
+        int IncorrectAttempts,
+        double Accuracy
     );
 }

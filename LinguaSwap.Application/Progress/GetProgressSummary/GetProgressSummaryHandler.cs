@@ -23,8 +23,9 @@ namespace LinguaSwap.Application.Progress.GetProgressSummary
                     s.TargetLanguage == query.TargetLanguage)
                 .ToList();
 
-            var totalAttempts = stats.Sum(s => s.CorrectCount + s.WrongCount);
             var correctAttempts = stats.Sum(s => s.CorrectCount);
+            var incorrectAttempts = stats.Sum(s => s.WrongCount);
+            var totalAttempts = correctAttempts + incorrectAttempts;
 
             var accuracy = totalAttempts == 0
                 ? 0
@@ -33,6 +34,7 @@ namespace LinguaSwap.Application.Progress.GetProgressSummary
             return new GetProgressSummaryResult(
                 TotalAttempts: totalAttempts,
                 CorrectAttempts: correctAttempts,
+                IncorrectAttempts: incorrectAttempts,
                 Accuracy: accuracy,
                 DistinctWords: stats.Count
             );

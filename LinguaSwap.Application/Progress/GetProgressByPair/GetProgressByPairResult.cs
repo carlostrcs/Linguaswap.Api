@@ -10,6 +10,7 @@ namespace LinguaSwap.Application.Progress.GetProgressByPair
         int DistinctWords,
         int TotalAttempts,
         int CorrectAttempts,
+        int IncorrectAttempts,
         double Accuracy
     );
 }
