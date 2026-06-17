@@ -53,6 +53,8 @@ namespace LinguaSwap.Infrastructure.Persistence
                     .IsRequired();
 
                 entity.HasIndex(x => x.LibraryId);
+
+                entity.HasIndex(x => new { x.UserId, x.SourceLanguage, x.TargetLanguage });
             });
 
             modelBuilder.Entity<Attempt>(entity =>
@@ -78,6 +80,7 @@ namespace LinguaSwap.Infrastructure.Persistence
 
                 entity.HasIndex(x => x.SessionId);
                 entity.HasIndex(x => x.WordId);
+                entity.HasIndex(x => new { x.SessionId, x.CreatedAt });
             });
 
             modelBuilder.Entity<Library>(entity =>
@@ -152,6 +155,11 @@ namespace LinguaSwap.Infrastructure.Persistence
                 entity.Property(x => x.CreatedAt).IsRequired();
 
                 entity.HasIndex(x => x.Email).IsUnique();
+            });
+
+            modelBuilder.Entity<UserVocabStats>(entity =>
+            {
+                entity.HasIndex(x => new { x.UserId, x.SourceLanguage, x.TargetLanguage });
             });
 
         }

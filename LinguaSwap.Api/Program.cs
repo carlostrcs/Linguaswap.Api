@@ -57,6 +57,7 @@ builder.Services.AddScoped<LinguaSwap.Application.Vocabulary.GetLibraryItems.Get
 builder.Services.AddScoped<LinguaSwap.Application.Vocabulary.GetPublicLibraries.GetPublicLibrariesHandler>();
 builder.Services.AddScoped<LinguaSwap.Application.Auth.Register.RegisterHandler>();
 builder.Services.AddScoped<LinguaSwap.Application.Auth.Login.LoginHandler>();
+builder.Services.AddScoped<LinguaSwap.Application.Practice.GetLibraryPracticeOptions.GetLibraryPracticeOptionsHandler>();
 
 // EF Core
 builder.Services.AddDbContext<LinguaSwapDbContext>(options =>

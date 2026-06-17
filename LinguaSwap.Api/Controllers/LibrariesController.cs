@@ -1,4 +1,5 @@
-﻿using LinguaSwap.Application.Vocabulary.CreateLibrary;
+﻿using LinguaSwap.Application.Practice.GetLibraryPracticeOptions;
+using LinguaSwap.Application.Vocabulary.CreateLibrary;
 using LinguaSwap.Application.Vocabulary.DeleteLibrary;
 using LinguaSwap.Application.Vocabulary.GetLibraries;
 using LinguaSwap.Application.Vocabulary.GetLibraryItems;
@@ -6,6 +7,7 @@ using LinguaSwap.Application.Vocabulary.GetPublicLibraries;
 using LinguaSwap.Application.Vocabulary.UpdateLibrary;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace LinguaSwap.Api.Controllers
@@ -20,6 +22,7 @@ namespace LinguaSwap.Api.Controllers
         private readonly DeleteLibraryHandler _deleteLibraryHandler;
         private readonly GetLibraryItemsHandler _getLibraryItemsHandler;
         private readonly GetPublicLibrariesHandler _getPublicLibrariesHandler;
+        private readonly GetLibraryPracticeOptionsHandler _getLibraryPracticeOptionsHandler;
 
         public LibrariesController(
             CreateLibraryHandler createLibraryHandler,
@@ -27,7 +30,8 @@ namespace LinguaSwap.Api.Controllers
             UpdateLibraryHandler updateLibraryHandler,
             DeleteLibraryHandler deleteLibraryHandler,
             GetLibraryItemsHandler getLibraryItemsHandler,
-            GetPublicLibrariesHandler getPublicLibrariesHandler)
+            GetPublicLibrariesHandler getPublicLibrariesHandler,
+            GetLibraryPracticeOptionsHandler getLibraryPracticeOptionsHandler)
         {
             _createLibraryHandler = createLibraryHandler;
             _getLibrariesHandler = getLibrariesHandler;
@@ -35,6 +39,7 @@ namespace LinguaSwap.Api.Controllers
             _deleteLibraryHandler = deleteLibraryHandler;
             _getLibraryItemsHandler = getLibraryItemsHandler;
             _getPublicLibrariesHandler = getPublicLibrariesHandler;
+            _getLibraryPracticeOptionsHandler = getLibraryPracticeOptionsHandler;
         }
 
         private Guid GetUserId()
@@ -43,6 +48,17 @@ namespace LinguaSwap.Api.Controllers
                 ?? throw new InvalidOperationException("User identifier missing.");
 
             return Guid.Parse(userIdString);
+        }
+
+        private Guid? GetCurrentUserIdOrNull()
+        {
+            var value =
+                User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            return Guid.TryParse(value, out var userId)
+                ? userId
+                : null;
         }
 
         public sealed record CreateLibraryRequest(string Name);
@@ -110,6 +126,17 @@ namespace LinguaSwap.Api.Controllers
         public ActionResult<GetPublicLibrariesResult> GetPublic()
         {
             return Ok(_getPublicLibrariesHandler.Handle(new GetPublicLibrariesQuery()));
+        }
+
+        [HttpGet("{libraryId:guid}/practice-options")]
+        [AllowAnonymous]
+        public ActionResult<GetLibraryPracticeOptionsResult> GetPracticeOptions(Guid libraryId)
+        {
+            var userId = GetCurrentUserIdOrNull();
+
+            var result = _getLibraryPracticeOptionsHandler.Handle(new GetLibraryPracticeOptionsQuery(libraryId, userId));
+
+            return Ok(result);
         }
     }
 }
